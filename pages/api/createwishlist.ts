@@ -42,11 +42,11 @@ async function addToWishList(req: NextApiRequest, res: NextApiResponse) {
     const moviesInWishList = wishlist.moviesIDs;
 
     if (moviesInWishList.includes(req.body.moviesIDs[0])) {
-      res.json("Movie Is ALready In the Wishlist");
+      res.status(401).json("Movie Is ALready In the Wishlist");
     } else if (moviesInCart.includes(req.body.moviesIDs[0])) {
-      res.json("Movie Is ALready In Cart");
+      res.status(401).json("Movie Is ALready In Cart");
     } else if (purchasedMovies.includes(req.body.moviesIDs[0])) {
-      res.json("Movie Is ALready Purchased");
+      res.status(401).json("Movie Is ALready Purchased");
     } else if (
       !moviesInWishList.includes(req.body.moviesIDs[0]) &&
       !moviesInCart.includes(req.body.moviesIDs[0]) &&
@@ -72,12 +72,12 @@ async function addToWishList(req: NextApiRequest, res: NextApiResponse) {
         },
       });
 
-      res.json(update);
+      // res.json(update);
       const { data } = await axios.get(
         `https://api.themoviedb.org/3/movie/${req.body.moviesIDs[0]}?api_key=${API_KEY}`
       );
 
-      res.json(data);
+      res.json({ message: "Movie Added To Wishlist", data });
     }
   }
 }
