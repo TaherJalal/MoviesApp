@@ -40,5 +40,13 @@ export default async function getUserDetails(
     } else {
       res.status(404).json("Something wrong happened");
     }
+
+    const purchasedMovies = await prisma.purchases.findUniqueOrThrow({
+      where: {
+        userID: userDetails.user.id,
+      },
+    });
+
+    console.log(purchasedMovies);
   }
 }
