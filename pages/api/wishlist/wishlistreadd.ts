@@ -17,14 +17,6 @@ export default async function reAdd(req: NextApiRequest, res: NextApiResponse) {
 
     let moviesInCart = cart.moviesIDs;
 
-    const wishlist = await prisma.wishlist.findUniqueOrThrow({
-      where: {
-        userID: userDetails.user.id,
-      },
-    });
-
-    let moviesInWishlist = wishlist.moviesIDs;
-
     if (req.body.moviesIDs) {
       let moviesToBeRemoved = moviesInCart.filter(
         (x, index) => moviesInCart[index] != movie

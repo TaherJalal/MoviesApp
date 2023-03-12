@@ -1,25 +1,27 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import jwtDecode from "jwt-decode";
 import { prisma } from "../../lib/prisma";
+import authUser from "@/components/helpers/auth";
 
 export default async function addToBalance(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const token: any = req.headers["authorization"];
+  const token = req.headers["authorization"];
 
-  if (token) {
-    let userDetails: any = jwtDecode(token as string);
-
-    const addBalance = await prisma.user.update({
-      where: {
-        id: userDetails.data.id,
-      },
-      data: {
-        balance: req.body.addBalance + 100,
-      },
-    });
-
-    res.json(addBalance);
+  if (!token) {
+    return res.json("UnAuthorized");
   }
+
+  const { id } = await authUser(token);
+
+  await prisma.user.update({
+    where: {
+      id,
+    },
+    data: {
+      balance: req.body.addBalance + 100,
+    },
+  });
+
+  res.json("Balance Added");
 }

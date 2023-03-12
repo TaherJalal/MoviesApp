@@ -26,3 +26,7 @@ export interface Movie {
     origin_country?:   string[];
     original_name?:    string;
 }
+
+export type AuthorizedUser {
+    id: string
+}
