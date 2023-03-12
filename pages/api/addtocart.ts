@@ -19,14 +19,14 @@ export default async function addToCart(
           OR: movies.map((movieId: string) => ({
             moviesIDs: { has: movieId },
           })),
-          userID: userDetails.data.id,
+          userID: userDetails.user.id,
         },
       })
     ).flatMap(({ moviesIDs }) => moviesIDs);
 
     const alreadyInCart = await prisma.cart.findUniqueOrThrow({
       where: {
-        userID: userDetails.data.id,
+        userID: userDetails.user.id,
       },
     });
 
@@ -36,30 +36,26 @@ export default async function addToCart(
       (x: any) => !purchased.includes(x) && !userMoviesInCart.includes(x)
     );
 
-    const updateCart = await prisma.cart.update({
-      where: {
-        userID: userDetails.data.id,
-      },
-      data: {
-        moviesIDs: {
-          push: finalArray,
+    if (purchased.includes(movies[0])) {
+      res.status(401).json("Movie Is Already Purchased");
+    } else if (userMoviesInCart.includes(movies[0])) {
+      res.status(401).json("Movie Is ALready In Cart");
+    } else if (
+      !purchased.includes(movies[0]) &&
+      !userMoviesInCart.includes(movies[0])
+    ) {
+      const updateCart = await prisma.cart.update({
+        where: {
+          userID: userDetails.user.id,
         },
-      },
-    });
+        data: {
+          moviesIDs: {
+            push: finalArray,
+          },
+        },
+      });
 
-    if (updateCart) {
-      // res.json(updateCart);
-      res.status(200).json("movies added to cart");
-    } else {
-      res.status(401).json("movies already bought or in cart");
+      res.json({ message: "Movie Added To Cart", updateCart });
     }
-
-    // console.log(movies, "sent movies Array");
-
-    // console.log(purchased, "purchased Array");
-
-    // console.log(userMoviesInCart, "user cart Array");
-
-    // console.log(finalArray, "final Array");
   }
 }
