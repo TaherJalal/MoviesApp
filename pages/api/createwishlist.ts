@@ -12,11 +12,11 @@ async function addToWishList(req: NextApiRequest, res: NextApiResponse) {
 
     const movies = req.body.moviesIDs;
 
-    console.log(userDetails.data.id);
+    // console.log(userDetails.user.id);
 
     const purchased = await prisma.purchases.findMany({
       where: {
-        userID: userDetails.data.id,
+        userID: userDetails.user.id,
         OR: movies.map((movieId: string) => ({
           moviesIDs: { has: movieId },
         })),
@@ -27,7 +27,7 @@ async function addToWishList(req: NextApiRequest, res: NextApiResponse) {
 
     const cart = await prisma.cart.findUniqueOrThrow({
       where: {
-        userID: userDetails.data.id,
+        userID: userDetails.user.id,
       },
     });
 
@@ -35,38 +35,50 @@ async function addToWishList(req: NextApiRequest, res: NextApiResponse) {
 
     const wishlist = await prisma.wishlist.findUniqueOrThrow({
       where: {
-        userID: userDetails.data.id,
+        userID: userDetails.user.id,
       },
     });
 
     const moviesInWishList = wishlist.moviesIDs;
 
-    const finalArray = movies.filter(
-      (x: any) =>
-        !purchasedMovies.includes(x) &&
-        !moviesInCart.includes(x) &&
-        !moviesInWishList.includes(x)
-    );
+    if (moviesInWishList.includes(req.body.moviesIDs[0])) {
+      res.json("Movie Is ALready In the Wishlist");
+    } else if (moviesInCart.includes(req.body.moviesIDs[0])) {
+      res.json("Movie Is ALready In Cart");
+    } else if (purchasedMovies.includes(req.body.moviesIDs[0])) {
+      res.json("Movie Is ALready Purchased");
+    } else if (
+      !moviesInWishList.includes(req.body.moviesIDs[0]) &&
+      !moviesInCart.includes(req.body.moviesIDs[0]) &&
+      !purchasedMovies.includes(req.body.moviesIDs[0])
+    ) {
+      const finalArray = movies.filter(
+        (x: any) =>
+          !purchasedMovies.includes(x) &&
+          !moviesInCart.includes(x) &&
+          !moviesInWishList.includes(x)
+      );
 
-    const canBeAddedtoWishlist = finalArray;
+      const canBeAddedtoWishlist = finalArray;
 
-    const update = await prisma.wishlist.update({
-      where: {
-        userID: userDetails.data.id,
-      },
-      data: {
-        moviesIDs: {
-          push: finalArray,
+      const update = await prisma.wishlist.update({
+        where: {
+          userID: userDetails.user.id,
         },
-      },
-    });
+        data: {
+          moviesIDs: {
+            push: finalArray,
+          },
+        },
+      });
 
-    res.json(update);
-    // const { data } = await axios.get(
-    //   `https://api.themoviedb.org/3/movie/${req.body.moviesIDs[0]}?api_key=${API_KEY}`
-    // );
+      res.json(update);
+      const { data } = await axios.get(
+        `https://api.themoviedb.org/3/movie/${req.body.moviesIDs[0]}?api_key=${API_KEY}`
+      );
 
-    // res.json(data);
+      res.json(data);
+    }
   }
 }
 
